@@ -27,6 +27,7 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
     distributeItemEqually,
     distributeItemCustom,
     updateSettings,
+    calculateResults,
   } = useBill();
 
   const [personName, setPersonName] = useState('');
@@ -59,6 +60,10 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
   const remainingQuantity = selectedItem
     ? Math.max(selectedItem.totalQuantity - distributedQuantity, 0)
     : 0;
+  const liveResults = useMemo(
+    () => (bill.people.length > 0 && bill.items.length > 0 ? calculateResults() : []),
+    [bill, calculateResults]
+  );
 
   const handleAddPerson = () => {
     if (!personName.trim()) {
@@ -70,6 +75,11 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
   };
 
   const handleAddItem = () => {
+    if (bill.people.length === 0) {
+      Alert.alert('Erro', 'Adicione pessoas e escolha quem paga este item.');
+      return;
+    }
+
     const price = parseFloat(itemPrice);
     const quantity = parseInt(itemQuantity);
 
@@ -85,10 +95,14 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
       Alert.alert('Erro', 'Digite uma quantidade válida');
       return;
     }
+    if (!payerId) {
+      Alert.alert('Erro', 'Selecione quem é o responsável por este item');
+      return;
+    }
 
     const totalPrice = priceMode === 'unit' ? price * quantity : price;
 
-    addItem(itemName.trim(), totalPrice, quantity, payerId || undefined);
+    addItem(itemName.trim(), totalPrice, quantity, payerId);
     setItemName('');
     setItemPrice('');
     setItemQuantity('1');
@@ -187,18 +201,6 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
     setPeopleQuantities({});
   };
 
-  const handleCalculate = () => {
-    if (bill.people.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma pessoa');
-      return;
-    }
-    if (bill.items.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos um item');
-      return;
-    }
-    navigation.navigate('Result');
-  };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -264,7 +266,7 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
             placeholder="1"
           />
           <View style={styles.payerSection}>
-            <Text style={styles.payerLabel}>Quem paga por este item?</Text>
+            <Text style={styles.payerLabel}>Quem paga por este item? (obrigatório)</Text>
             {bill.people.length === 0 ? (
               <Text style={styles.payerHelper}>Adicione pessoas para selecionar um pagador.</Text>
             ) : (
@@ -366,7 +368,34 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
           </View>
         </Card>
 
-        <Button title="Calcular Resultado" onPress={handleCalculate} />
+        {liveResults.length > 0 && (
+          <Card style={styles.liveResultsCard}>
+            <Text style={styles.sectionTitle}>Resultado Atual</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total geral</Text>
+              <Text style={styles.summaryValue}>
+                R$ {formatCurrency(liveResults.reduce((sum, r) => sum + r.totalToPay, 0))}
+              </Text>
+            </View>
+            {liveResults.map(result => (
+              <View key={result.personId} style={styles.livePersonRow}>
+                <View>
+                  <Text style={styles.personName}>{result.personName}</Text>
+                  <Text style={styles.liveSubText}>
+                    Consumo: R$ {formatCurrency(result.itemsTotal)} • Gorjeta: R$ {formatCurrency(result.serviceFee)}
+                  </Text>
+                </View>
+                <Text style={styles.liveAmount}>R$ {formatCurrency(result.totalToPay)}</Text>
+              </View>
+            ))}
+
+            <Button
+              title="Ver detalhamento completo"
+              onPress={() => navigation.navigate('Result')}
+              style={styles.liveButton}
+            />
+          </Card>
+        )}
       </View>
 
       {/* Modal de Distribuição */}
@@ -589,6 +618,12 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: '#F0F6FF',
   },
+  liveResultsCard: {
+    marginTop: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -619,6 +654,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#007AFF',
+  },
+  livePersonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  personName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  liveSubText: {
+    fontSize: 12,
+    color: '#5C5C60',
+    marginTop: 2,
+  },
+  liveAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#007AFF',
+  },
+  liveButton: {
+    marginTop: 12,
   },
   modalOverlay: {
     flex: 1,
