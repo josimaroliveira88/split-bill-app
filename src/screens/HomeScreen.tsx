@@ -15,7 +15,7 @@ type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [history, setHistory] = useState<BillHistoryEntry[]>([]);
-  const { loadBillFromHistory, setCurrentEntryMeta } = useBill();
+  const { loadBillFromHistory, setCurrentEntryMeta, clearBill } = useBill();
 
   const loadHistory = useCallback(async () => {
     const entries = await StorageService.loadBillHistory();
@@ -63,7 +63,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleAddDetailed = () => {
-    setCurrentEntryMeta(null);
+    clearBill();
     navigation.navigate('DetailedStackNav', { screen: 'DetailedSplit' });
   };
 
