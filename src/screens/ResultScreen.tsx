@@ -1,6 +1,6 @@
 // src/screens/ResultScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,39 @@ import {
 import { useBill } from '../context/BillContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { BillResult } from '../types/bill.types';
+import { BillHistoryEntry, BillResult } from '../types/bill.types';
+import { StorageService } from '../services/storage.service';
 
 export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { calculateResults, clearBill } = useBill();
+  const { bill, calculateResults, clearBill, currentEntryMeta, setCurrentEntryMeta } = useBill();
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const results = calculateResults();
+  const saveKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (results.length === 0) return;
+
+    const payloadKey = JSON.stringify({ bill, results });
+    if (saveKeyRef.current === payloadKey) return;
+    saveKeyRef.current = payloadKey;
+
+    const entry: BillHistoryEntry = {
+      id: currentEntryMeta?.id || Date.now().toString(),
+      name: currentEntryMeta?.name || 'Conta Detalhada',
+      createdAt: currentEntryMeta?.createdAt || new Date().toISOString(),
+      type: 'detailed',
+      bill,
+      result: results,
+    };
+
+    const persist = currentEntryMeta?.id
+      ? StorageService.updateHistoryEntry(entry)
+      : StorageService.saveHistoryEntry(entry);
+
+    persist.then(() => {
+      setCurrentEntryMeta({ id: entry.id, name: entry.name, createdAt: entry.createdAt });
+    });
+  }, [bill, results, currentEntryMeta, setCurrentEntryMeta]);
 
   const totalBill = results.reduce((sum, r) => sum + r.totalToPay, 0);
 

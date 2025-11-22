@@ -1,17 +1,36 @@
 // src/screens/SimpleSplitScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import { CalculationService } from '../services/calculation.service';
+import { BillHistoryEntry, SimpleBill } from '../types/bill.types';
+import { StorageService } from '../services/storage.service';
+import { MainTabParamList } from '../types/navigation.types';
 
-export const SimpleSplitScreen: React.FC = () => {
+type Props = BottomTabScreenProps<MainTabParamList, 'SimpleSplit'>;
+
+export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
+  const existingEntry: BillHistoryEntry | undefined = route?.params?.entry;
   const [totalAmount, setTotalAmount] = useState('');
   const [numberOfPeople, setNumberOfPeople] = useState('');
   const [serviceFee, setServiceFee] = useState('10');
   const [result, setResult] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (existingEntry && existingEntry.type === 'simple') {
+      const bill = existingEntry.bill as SimpleBill;
+      setTotalAmount(bill.totalAmount.toString());
+      setNumberOfPeople(bill.numberOfPeople.toString());
+      setServiceFee(bill.serviceFeePercentage.toString());
+      if (typeof existingEntry.result === 'number') {
+        setResult(existingEntry.result);
+      }
+    }
+  }, [existingEntry]);
 
   const handleCalculate = () => {
     const total = parseFloat(totalAmount);
@@ -40,6 +59,23 @@ export const SimpleSplitScreen: React.FC = () => {
     });
 
     setResult(perPerson);
+
+    const billToSave: SimpleBill = {
+      totalAmount: total,
+      numberOfPeople: people,
+      serviceFeePercentage: fee,
+    };
+
+    if (existingEntry && existingEntry.type === 'simple') {
+      const updatedEntry: BillHistoryEntry = {
+        ...existingEntry,
+        bill: billToSave,
+        result: perPerson,
+      };
+      StorageService.updateHistoryEntry(updatedEntry);
+    } else {
+      StorageService.saveSimpleBill(billToSave, perPerson);
+    }
   };
 
   const handleClear = () => {

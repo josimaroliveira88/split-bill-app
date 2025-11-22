@@ -1,7 +1,7 @@
 // src/services/storage.service.ts
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DetailedBill } from '../types/bill.types';
+import { BillHistoryEntry, DetailedBill, SimpleBill } from '../types/bill.types';
 
 const STORAGE_KEYS = {
   DETAILED_BILL: '@split_bill:detailed_bill',
@@ -52,21 +52,17 @@ export class StorageService {
    */
   static async saveBillToHistory(bill: DetailedBill, results: any[]): Promise<void> {
     try {
-      const history = await this.loadBillHistory();
-      const newEntry = {
+      const resultsHistory = Array.isArray(results) ? results : [];
+      const entry: BillHistoryEntry = {
         id: Date.now().toString(),
-        date: new Date().toISOString(),
+        name: 'Conta Detalhada',
+        type: 'detailed',
+        createdAt: new Date().toISOString(),
         bill,
-        results,
+        result: resultsHistory,
       };
 
-      history.unshift(newEntry);
-
-      // Manter apenas os últimos 10 registros
-      const limitedHistory = history.slice(0, 10);
-
-      const jsonValue = JSON.stringify(limitedHistory);
-      await AsyncStorage.setItem(STORAGE_KEYS.BILL_HISTORY, jsonValue);
+      await this.saveHistoryEntry(entry);
     } catch (error) {
       console.error('Erro ao salvar histórico:', error);
     }
@@ -75,7 +71,7 @@ export class StorageService {
   /**
    * Carregar histórico
    */
-  static async loadBillHistory(): Promise<any[]> {
+  static async loadBillHistory(): Promise<BillHistoryEntry[]> {
     try {
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.BILL_HISTORY);
       return jsonValue != null ? JSON.parse(jsonValue) : [];
@@ -83,5 +79,36 @@ export class StorageService {
       console.error('Erro ao carregar histórico:', error);
       return [];
     }
+  }
+
+  static async saveHistoryEntry(entry: BillHistoryEntry): Promise<void> {
+    const history = await this.loadBillHistory();
+    const newHistory = [entry, ...history].slice(0, 20);
+    await AsyncStorage.setItem(STORAGE_KEYS.BILL_HISTORY, JSON.stringify(newHistory));
+  }
+
+  static async deleteHistoryEntry(id: string): Promise<void> {
+    const history = await this.loadBillHistory();
+    const newHistory = history.filter(item => item.id !== id);
+    await AsyncStorage.setItem(STORAGE_KEYS.BILL_HISTORY, JSON.stringify(newHistory));
+  }
+
+  static async updateHistoryEntry(updated: BillHistoryEntry): Promise<void> {
+    const history = await this.loadBillHistory();
+    const newHistory = history.map(item => (item.id === updated.id ? updated : item));
+    await AsyncStorage.setItem(STORAGE_KEYS.BILL_HISTORY, JSON.stringify(newHistory));
+  }
+
+  static async saveSimpleBill(bill: SimpleBill, perPerson: number, name?: string): Promise<void> {
+    const entry: BillHistoryEntry = {
+      id: Date.now().toString(),
+      name: name || 'Conta Simples',
+      type: 'simple',
+      createdAt: new Date().toISOString(),
+      bill,
+      result: perPerson,
+    };
+
+    await this.saveHistoryEntry(entry);
   }
 }

@@ -1,12 +1,13 @@
 // src/context/BillContext.tsx
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { DetailedBill, Person, Item, ItemConsumption, BillSettings, BillResult } from '../types/bill.types';
+import { DetailedBill, Person, Item, ItemConsumption, BillSettings, BillResult, BillHistoryEntry } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
 import { CalculationService } from '../services/calculation.service';
 
 interface BillContextData {
   bill: DetailedBill;
+  currentEntryMeta: { id?: string; name?: string; createdAt?: string } | null;
   addPerson: (name: string) => void;
   removePerson: (id: string) => void;
   addItem: (name: string, price: number, quantity: number, payerId?: string) => void;
@@ -16,6 +17,8 @@ interface BillContextData {
   distributeItemCustom: (itemId: string, consumptions: ItemConsumption[]) => void;
   updateSettings: (settings: Partial<BillSettings>) => void;
   calculateResults: () => BillResult[];
+  loadBillFromHistory: (entry: BillHistoryEntry) => void;
+  setCurrentEntryMeta: (meta: { id?: string; name?: string; createdAt?: string } | null) => void;
   clearBill: () => void;
   saveBill: () => Promise<void>;
   loadBill: () => Promise<void>;
@@ -34,6 +37,11 @@ const initialBill: DetailedBill = {
 
 export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [bill, setBill] = useState<DetailedBill>(initialBill);
+  const [currentEntryMeta, setCurrentEntryMeta] = useState<{
+    id?: string;
+    name?: string;
+    createdAt?: string;
+  } | null>(null);
 
   // Carregar dados ao iniciar
   useEffect(() => {
@@ -178,6 +186,7 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearBill = () => {
     setBill(initialBill);
+    setCurrentEntryMeta(null);
     StorageService.clearCurrentBill();
   };
 
@@ -192,6 +201,13 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const loadBillFromHistory = (entry: BillHistoryEntry) => {
+    if (entry.type !== 'detailed') return;
+    setBill(entry.bill as DetailedBill);
+    setCurrentEntryMeta({ id: entry.id, name: entry.name, createdAt: entry.createdAt });
+    StorageService.saveDetailedBill(entry.bill as DetailedBill);
+  };
+
   // Auto-save quando o bill mudar
   useEffect(() => {
     if (bill.people.length > 0 || bill.items.length > 0) {
@@ -203,6 +219,7 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <BillContext.Provider
       value={{
         bill,
+        currentEntryMeta,
         addPerson,
         removePerson,
         addItem,
@@ -212,6 +229,8 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         distributeItemCustom,
         updateSettings,
         calculateResults,
+        loadBillFromHistory,
+        setCurrentEntryMeta,
         clearBill,
         saveBill,
         loadBill,

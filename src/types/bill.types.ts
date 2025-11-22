@@ -50,3 +50,14 @@ export interface DetailedBill {
   items: Item[];
   settings: BillSettings;
 }
+
+export type BillEntryType = 'simple' | 'detailed';
+
+export interface BillHistoryEntry {
+  id: string;
+  name: string;
+  type: BillEntryType;
+  createdAt: string;
+  bill: SimpleBill | DetailedBill;
+  result: number | BillResult[]; // Simple: valor por pessoa; Detailed: resultados calculados
+}
