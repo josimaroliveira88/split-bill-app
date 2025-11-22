@@ -34,6 +34,13 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
   const [showDistributeModal, setShowDistributeModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
+  const serviceFeePercentage = bill.settings.serviceFeePercentage || 0;
+
+  const formatCurrency = (value: number) => value.toFixed(2).replace('.', ',');
+
+  const totalItemsValue = bill.items.reduce((sum, item) => sum + item.price, 0);
+  const serviceFeeValue = totalItemsValue * (serviceFeePercentage / 100);
+  const totalBillValue = totalItemsValue + serviceFeeValue;
 
   const handleAddPerson = () => {
     if (!personName.trim()) {
@@ -205,6 +212,26 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
           </View>
         </Card>
 
+        <Card style={styles.summaryCard}>
+          <Text style={styles.sectionTitle}>Resumo da Conta</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total consumido</Text>
+            <Text style={styles.summaryValue}>R$ {formatCurrency(totalItemsValue)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>
+              Gorjeta ({serviceFeePercentage}%)
+            </Text>
+            <Text style={styles.summaryValue}>R$ {formatCurrency(serviceFeeValue)}</Text>
+          </View>
+          <View style={[styles.summaryRow, styles.summaryTotalRow]}>
+            <Text style={styles.summaryTotalLabel}>Total da conta</Text>
+            <Text style={styles.summaryTotalValue}>
+              R$ {formatCurrency(totalBillValue)}
+            </Text>
+          </View>
+        </Card>
+
         <Button title="Calcular Resultado" onPress={handleCalculate} />
       </View>
 
@@ -333,6 +360,40 @@ const styles = StyleSheet.create({
   },
   modeButton: {
     flex: 1,
+  },
+  summaryCard: {
+    backgroundColor: '#F0F6FF',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#555',
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  summaryTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+    paddingTop: 8,
+    marginTop: 4,
+  },
+  summaryTotalLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  summaryTotalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#007AFF',
   },
   modalOverlay: {
     flex: 1,
