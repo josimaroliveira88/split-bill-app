@@ -11,6 +11,7 @@ export interface Item {
   name: string;
   price: number;
   totalQuantity: number; // Ex: 10 cervejas
+  payerId?: string; // Pessoa responsável pelo pagamento
 }
 
 export interface ItemConsumption {

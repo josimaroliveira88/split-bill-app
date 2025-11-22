@@ -1,6 +1,6 @@
 // src/screens/DetailedSplitScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   Alert,
   TouchableOpacity,
   Modal,
+  TextInput,
 } from 'react-native';
 import { useBill } from '../context/BillContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
+import { ItemConsumption } from '../types/bill.types';
 
 export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const {
@@ -22,8 +24,8 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
     removePerson,
     addItem,
     removeItem,
-    addItemConsumption,
     distributeItemEqually,
+    distributeItemCustom,
     updateSettings,
   } = useBill();
 
@@ -31,9 +33,12 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
   const [itemName, setItemName] = useState('');
   const [itemPrice, setItemPrice] = useState('');
   const [itemQuantity, setItemQuantity] = useState('1');
+  const [payerId, setPayerId] = useState('');
+  const [priceMode, setPriceMode] = useState<'total' | 'unit'>('total');
   const [showDistributeModal, setShowDistributeModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
+  const [peopleQuantities, setPeopleQuantities] = useState<Record<string, string>>({});
   const serviceFeePercentage = bill.settings.serviceFeePercentage || 0;
 
   const formatCurrency = (value: number) => value.toFixed(2).replace('.', ',');
@@ -41,6 +46,19 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
   const totalItemsValue = bill.items.reduce((sum, item) => sum + item.price, 0);
   const serviceFeeValue = totalItemsValue * (serviceFeePercentage / 100);
   const totalBillValue = totalItemsValue + serviceFeeValue;
+  const selectedItem = useMemo(
+    () => bill.items.find(item => item.id === selectedItemId) || null,
+    [bill.items, selectedItemId]
+  );
+  const distributedQuantity = useMemo(() => {
+    return selectedPeople.reduce((sum, personId) => {
+      const qty = parseFloat(peopleQuantities[personId] || '0');
+      return sum + (isNaN(qty) ? 0 : qty);
+    }, 0);
+  }, [peopleQuantities, selectedPeople]);
+  const remainingQuantity = selectedItem
+    ? Math.max(selectedItem.totalQuantity - distributedQuantity, 0)
+    : 0;
 
   const handleAddPerson = () => {
     if (!personName.trim()) {
@@ -68,33 +86,105 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
       return;
     }
 
-    addItem(itemName.trim(), price, quantity);
+    const totalPrice = priceMode === 'unit' ? price * quantity : price;
+
+    addItem(itemName.trim(), totalPrice, quantity, payerId || undefined);
     setItemName('');
     setItemPrice('');
     setItemQuantity('1');
+    setPayerId('');
+    setPriceMode('total');
   };
 
   const handleDistributeItem = (itemId: string) => {
     setSelectedItemId(itemId);
     setSelectedPeople([]);
+    setPeopleQuantities({});
     setShowDistributeModal(true);
   };
 
   const togglePersonSelection = (personId: string) => {
-    setSelectedPeople(prev =>
-      prev.includes(personId)
-        ? prev.filter(id => id !== personId)
-        : [...prev, personId]
-    );
+    setSelectedPeople(prev => {
+      const alreadySelected = prev.includes(personId);
+
+      if (alreadySelected) {
+        setPeopleQuantities(current => {
+          const updated = { ...current };
+          delete updated[personId];
+          return updated;
+        });
+        return prev.filter(id => id !== personId);
+      }
+
+      return [...prev, personId];
+    });
   };
 
   const confirmDistribution = () => {
-    if (selectedItemId && selectedPeople.length > 0) {
+    if (!selectedItemId || selectedPeople.length === 0) {
+      Alert.alert('Erro', 'Selecione ao menos uma pessoa para distribuir.');
+      return;
+    }
+
+    const item = bill.items.find(i => i.id === selectedItemId);
+    if (!item) return;
+
+    const manualConsumptions = selectedPeople
+      .map(personId => ({
+        itemId: item.id,
+        personId,
+        quantity: parseFloat(peopleQuantities[personId] || '0'),
+      }))
+      .filter(c => !isNaN(c.quantity) && c.quantity > 0);
+
+    if (manualConsumptions.length === 0) {
       distributeItemEqually(selectedItemId, selectedPeople);
       setShowDistributeModal(false);
       setSelectedItemId(null);
       setSelectedPeople([]);
+      setPeopleQuantities({});
+      return;
     }
+
+    const totalDistributed = manualConsumptions.reduce((sum, c) => sum + c.quantity, 0);
+
+    if (totalDistributed > item.totalQuantity) {
+      Alert.alert(
+        'Erro',
+        'A quantidade distribuída excede a quantidade total disponível para este item.'
+      );
+      return;
+    }
+
+    const consumptions: ItemConsumption[] = [...manualConsumptions];
+    const remaining = item.totalQuantity - totalDistributed;
+
+    if (remaining > 0) {
+      if (item.payerId) {
+        const payerIndex = consumptions.findIndex(c => c.personId === item.payerId);
+
+        if (payerIndex >= 0) {
+          consumptions[payerIndex] = {
+            ...consumptions[payerIndex],
+            quantity: consumptions[payerIndex].quantity + remaining,
+          };
+        } else {
+          consumptions.push({ itemId: item.id, personId: item.payerId, quantity: remaining });
+        }
+      } else {
+        Alert.alert(
+          'Atenção',
+          'Distribua toda a quantidade do item ou selecione um pagador para ficar com o restante.'
+        );
+        return;
+      }
+    }
+
+    distributeItemCustom(item.id, consumptions);
+    setShowDistributeModal(false);
+    setSelectedItemId(null);
+    setSelectedPeople([]);
+    setPeopleQuantities({});
   };
 
   const handleCalculate = () => {
@@ -139,6 +229,20 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
         {/* Itens */}
         <Card>
           <Text style={styles.sectionTitle}>Itens</Text>
+          <View style={styles.priceModeRow}>
+            <Button
+              title="Preço Total"
+              onPress={() => setPriceMode('total')}
+              variant={priceMode === 'total' ? 'primary' : 'secondary'}
+              style={styles.priceModeButton}
+            />
+            <Button
+              title="Preço Unitário"
+              onPress={() => setPriceMode('unit')}
+              variant={priceMode === 'unit' ? 'primary' : 'secondary'}
+              style={styles.priceModeButton}
+            />
+          </View>
           <Input
             label="Nome do Item"
             value={itemName}
@@ -146,7 +250,7 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
             placeholder="Ex: Pizza"
           />
           <Input
-            label="Preço Total (R$)"
+            label={priceMode === 'total' ? 'Preço Total (R$)' : 'Preço Unitário (R$)'}
             value={itemPrice}
             onChangeText={setItemPrice}
             keyboardType="decimal-pad"
@@ -159,6 +263,29 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
             keyboardType="number-pad"
             placeholder="1"
           />
+          <View style={styles.payerSection}>
+            <Text style={styles.payerLabel}>Quem paga por este item?</Text>
+            {bill.people.length === 0 ? (
+              <Text style={styles.payerHelper}>Adicione pessoas para selecionar um pagador.</Text>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {bill.people.map(person => {
+                  const selected = payerId === person.id;
+                  return (
+                    <TouchableOpacity
+                      key={person.id}
+                      style={[styles.payerChip, selected && styles.payerChipSelected]}
+                      onPress={() => setPayerId(selected ? '' : person.id)}
+                    >
+                      <Text style={[styles.payerChipText, selected && styles.payerChipTextSelected]}>
+                        {person.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </View>
           <Button title="Adicionar Item" onPress={handleAddItem} />
 
           {bill.items.map(item => (
@@ -169,9 +296,16 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
                   <Text style={styles.removeText}>Remover</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.itemDetail}>
-                R$ {item.price.toFixed(2)} - {item.totalQuantity} unidade(s)
-              </Text>
+              <View style={styles.itemDetail}>
+                <Text style={styles.itemDetailQuantity}>
+                  {item.totalQuantity} unidade(s)
+                </Text>
+                <Text style={styles.itemDetailPrice}>
+                  Unitário: R$ {formatCurrency(item.price / item.totalQuantity)}
+                  {'  '}•{'  '}
+                  Total: R$ {formatCurrency(item.price)}
+                </Text>
+              </View>
               <Button
                 title="Distribuir entre pessoas"
                 onPress={() => handleDistributeItem(item.id)}
@@ -240,20 +374,56 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Selecione as Pessoas</Text>
+            {selectedItem && (
+              <Text style={styles.modalHelper}>
+                Total: {selectedItem.totalQuantity}  •  Distribuída: {distributedQuantity || 0}
+                {'  '}•{'  '}Restante: {remainingQuantity}
+              </Text>
+            )}
+            <Text style={styles.modalHelper}>
+              Informe a quantidade para cada pessoa. Se deixar em branco, dividiremos o item
+              igualmente entre os selecionados.
+            </Text>
             {bill.people.map(person => (
-              <TouchableOpacity
+              <View
                 key={person.id}
                 style={[
                   styles.personOption,
                   selectedPeople.includes(person.id) && styles.personSelected,
                 ]}
-                onPress={() => togglePersonSelection(person.id)}
               >
-                <Text style={styles.personOptionText}>{person.name}</Text>
+                <TouchableOpacity
+                  style={styles.personInfo}
+                  onPress={() => togglePersonSelection(person.id)}
+                >
+                  <Text
+                    style={[
+                      styles.personOptionText,
+                      selectedPeople.includes(person.id) && styles.personOptionTextSelected,
+                    ]}
+                  >
+                    {person.name}
+                  </Text>
+                  {selectedPeople.includes(person.id) && (
+                    <Text style={styles.personHint}>Selecionado</Text>
+                  )}
+                </TouchableOpacity>
+
                 {selectedPeople.includes(person.id) && (
-                  <Text style={styles.checkmark}>✓</Text>
+                  <View style={styles.quantityInputContainer}>
+                    <Text style={styles.quantityLabel}>Qtd.</Text>
+                    <TextInput
+                      value={peopleQuantities[person.id] || ''}
+                      onChangeText={text =>
+                        setPeopleQuantities(prev => ({ ...prev, [person.id]: text }))
+                      }
+                      placeholder="0"
+                      keyboardType="decimal-pad"
+                      style={styles.quantityInput}
+                    />
+                  </View>
                 )}
-              </TouchableOpacity>
+              </View>
             ))}
             <View style={styles.modalButtons}>
               <Button
@@ -263,7 +433,12 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
               />
               <Button
                 title="Cancelar"
-                onPress={() => setShowDistributeModal(false)}
+                onPress={() => {
+                  setShowDistributeModal(false);
+                  setSelectedItemId(null);
+                  setSelectedPeople([]);
+                  setPeopleQuantities({});
+                }}
                 variant="secondary"
                 style={styles.modalButton}
               />
@@ -341,9 +516,16 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
   },
   itemDetail: {
-    fontSize: 14,
-    color: '#8E8E93',
     marginBottom: 8,
+  },
+  itemDetailQuantity: {
+    fontSize: 14,
+    color: '#5C5C60',
+  },
+  itemDetailPrice: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginTop: 2,
   },
   distributeButton: {
     marginTop: 8,
@@ -360,6 +542,49 @@ const styles = StyleSheet.create({
   },
   modeButton: {
     flex: 1,
+  },
+  priceModeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  priceModeButton: {
+    flex: 1,
+  },
+  payerSection: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  payerLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 8,
+  },
+  payerHelper: {
+    fontSize: 13,
+    color: '#8E8E93',
+  },
+  payerChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginRight: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  payerChipSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  payerChipText: {
+    fontSize: 14,
+    color: '#1C1C1E',
+  },
+  payerChipTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   summaryCard: {
     backgroundColor: '#F0F6FF',
@@ -429,9 +654,37 @@ const styles = StyleSheet.create({
   personOptionText: {
     fontSize: 16,
   },
-  checkmark: {
-    fontSize: 20,
+  personOptionTextSelected: {
     color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  personInfo: {
+    flex: 1,
+  },
+  personHint: {
+    fontSize: 12,
+    color: '#E5E5EA',
+    marginTop: 4,
+  },
+  quantityInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  quantityLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    marginRight: 6,
+  },
+  quantityInput: {
+    width: 80,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    color: '#1C1C1E',
   },
   modalButtons: {
     marginTop: 16,
@@ -439,5 +692,11 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginBottom: 8,
+  },
+  modalHelper: {
+    fontSize: 13,
+    color: '#5C5C60',
+    marginBottom: 8,
+    lineHeight: 18,
   },
 });

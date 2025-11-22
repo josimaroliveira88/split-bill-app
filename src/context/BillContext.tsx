@@ -9,10 +9,11 @@ interface BillContextData {
   bill: DetailedBill;
   addPerson: (name: string) => void;
   removePerson: (id: string) => void;
-  addItem: (name: string, price: number, quantity: number) => void;
+  addItem: (name: string, price: number, quantity: number, payerId?: string) => void;
   removeItem: (id: string) => void;
   addItemConsumption: (itemId: string, personId: string, quantity: number) => void;
   distributeItemEqually: (itemId: string, selectedPeopleIds: string[]) => void;
+  distributeItemCustom: (itemId: string, consumptions: ItemConsumption[]) => void;
   updateSettings: (settings: Partial<BillSettings>) => void;
   calculateResults: () => BillResult[];
   clearBill: () => void;
@@ -58,17 +59,41 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  const addItem = (name: string, price: number, quantity: number) => {
-    const newItem: Item = {
-      id: Date.now().toString(),
-      name,
-      price,
-      totalQuantity: quantity,
-    };
-    setBill(prev => ({
-      ...prev,
-      items: [...prev.items, newItem],
-    }));
+  const addItem = (name: string, price: number, quantity: number, payerId?: string) => {
+    const itemId = Date.now().toString();
+    setBill(prev => {
+      const newItem: Item = {
+        id: itemId,
+        name,
+        price,
+        totalQuantity: quantity,
+        payerId,
+      };
+
+      const updatedPeople = payerId
+        ? prev.people.map(person => {
+            if (person.id !== payerId) return person;
+
+            // Responsável paga o item inteiro por padrão
+            const filteredConsumptions = person.itemConsumptions.filter(
+              ic => ic.itemId !== itemId
+            );
+            return {
+              ...person,
+              itemConsumptions: [
+                ...filteredConsumptions,
+                { itemId, personId: payerId, quantity },
+              ],
+            };
+          })
+        : prev.people;
+
+      return {
+        ...prev,
+        items: [...prev.items, newItem],
+        people: updatedPeople,
+      };
+    });
   };
 
   const removeItem = (id: string) => {
@@ -112,27 +137,32 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
+  const setItemConsumptions = (itemId: string, consumptions: ItemConsumption[]) => {
+    setBill(prev => ({
+      ...prev,
+      people: prev.people.map(person => {
+        const filteredConsumptions = person.itemConsumptions.filter(ic => ic.itemId !== itemId);
+        const consumption = consumptions.find(c => c.personId === person.id);
+
+        if (!consumption) {
+          return { ...person, itemConsumptions: filteredConsumptions };
+        }
+
+        return { ...person, itemConsumptions: [...filteredConsumptions, consumption] };
+      }),
+    }));
+  };
+
   const distributeItemEqually = (itemId: string, selectedPeopleIds: string[]) => {
     const item = bill.items.find(i => i.id === itemId);
     if (!item) return;
 
     const consumptions = CalculationService.distributeItemEqually(item, selectedPeopleIds);
+    setItemConsumptions(itemId, consumptions);
+  };
 
-    setBill(prev => ({
-      ...prev,
-      people: prev.people.map(person => {
-        const consumption = consumptions.find(c => c.personId === person.id);
-        if (!consumption) return person;
-
-        // Remover consumo anterior deste item
-        const filteredConsumptions = person.itemConsumptions.filter(ic => ic.itemId !== itemId);
-
-        return {
-          ...person,
-          itemConsumptions: [...filteredConsumptions, consumption],
-        };
-      }),
-    }));
+  const distributeItemCustom = (itemId: string, consumptions: ItemConsumption[]) => {
+    setItemConsumptions(itemId, consumptions);
   };
 
   const updateSettings = (settings: Partial<BillSettings>) => {
@@ -179,6 +209,7 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         removeItem,
         addItemConsumption,
         distributeItemEqually,
+        distributeItemCustom,
         updateSettings,
         calculateResults,
         clearBill,
