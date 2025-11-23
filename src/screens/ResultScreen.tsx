@@ -13,6 +13,7 @@ import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { BillHistoryEntry, BillResult } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
+import { colors } from '../theme/colors';
 
 export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { bill, calculateResults, clearBill, currentEntryMeta, setCurrentEntryMeta } = useBill();
@@ -152,7 +153,7 @@ export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -160,25 +161,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
     marginBottom: 24,
   },
   subtitle: {
     fontSize: 16,
-    color: '#5C5C60',
+    color: colors.textSecondary,
     marginTop: -8,
     marginBottom: 8,
   },
   note: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textMuted,
     marginTop: -4,
     marginBottom: 12,
   },
   summaryCard: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     paddingVertical: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   summaryLabel: {
     fontSize: 16,
@@ -197,24 +200,26 @@ const styles = StyleSheet.create({
   },
   personName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   personAmount: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
+    fontWeight: '800',
+    color: colors.primary,
   },
   expandIcon: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textMuted,
   },
   details: {
     marginTop: 16,
     paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopWidth: 0,
+    backgroundColor: '#1E1C32',
+    borderRadius: 16,
+    paddingHorizontal: 12,
   },
   detailRow: {
     flexDirection: 'row',
@@ -223,12 +228,12 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textMuted,
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   itemDetail: {
     flexDirection: 'row',
@@ -238,17 +243,16 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.textSecondary,
   },
   itemPrice: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.textMuted,
   },
   serviceFeeRow: {
     marginTop: 12,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopWidth: 0,
   },
   totalRow: {
     marginTop: 8,
@@ -257,12 +261,12 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
   },
   totalValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: colors.primary,
   },
   actions: {
     marginTop: 24,

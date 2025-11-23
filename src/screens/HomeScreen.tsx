@@ -11,6 +11,7 @@ import { BillHistoryEntry } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
 import { useBill } from '../context/BillContext';
 import { MainTabParamList, RootStackParamList } from '../types/navigation.types';
+import { colors } from '../theme/colors';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
@@ -160,7 +161,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -168,18 +169,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 15,
-    color: '#5C5C60',
+    color: colors.textSecondary,
     marginBottom: 18,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   actionsCard: {
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    color: '#5C5C60',
+    color: colors.textSecondary,
   },
   entryCard: {
     marginBottom: 12,
@@ -207,22 +208,23 @@ const styles = StyleSheet.create({
   },
   entryTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   entryDate: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.textMuted,
     marginTop: 2,
   },
   entrySummary: {
-    fontSize: 14,
-    color: '#5C5C60',
+    fontSize: 15,
+    color: colors.textSecondary,
+    fontWeight: '700',
     marginBottom: 10,
   },
   entryNote: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.textMuted,
     marginBottom: 8,
   },
   badge: {
@@ -231,15 +233,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   badgeDetailed: {
-    backgroundColor: '#E5F0FF',
+    backgroundColor: 'rgba(123, 108, 255, 0.18)',
   },
   badgeSimple: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: 'rgba(45, 225, 194, 0.18)',
   },
   badgeText: {
     fontSize: 12,
-    color: '#1C1C1E',
-    fontWeight: '600',
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   entryActions: {
     flexDirection: 'row',
@@ -247,10 +249,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   link: {
-    color: '#007AFF',
-    fontWeight: '600',
+    color: colors.primary,
+    fontWeight: '700',
   },
   deleteLink: {
-    color: '#FF3B30',
+    color: colors.danger,
   },
 });

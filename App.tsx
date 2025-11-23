@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BillProvider } from './src/context/BillContext';
@@ -14,6 +14,19 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { SavedBillDetailScreen } from './src/screens/SavedBillDetailScreen';
 import { MainTabParamList, RootStackParamList, DetailedStackParamList } from './src/types/navigation.types';
 import { useBill } from './src/context/BillContext';
+import { colors } from './src/theme/colors';
+
+const navTheme = {
+    ...DefaultTheme,
+    colors: {
+        ...DefaultTheme.colors,
+        background: colors.background,
+        card: colors.card,
+        primary: colors.primary,
+        text: colors.textPrimary,
+        border: colors.border,
+    },
+};
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,13 +49,18 @@ function MainTabs() {
         <Tab.Navigator
             initialRouteName="Home"
             screenOptions={{
-                tabBarActiveTintColor: '#007AFF',
-                tabBarInactiveTintColor: '#8E8E93',
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textMuted,
                 tabBarStyle: {
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: colors.card,
+                    borderTopWidth: 0,
+                    elevation: 12,
+                    height: 70,
+                    paddingBottom: 10,
+                    borderTopColor: colors.border,
                     borderTopWidth: 1,
-                    borderTopColor: '#E5E5EA',
                 },
+                tabBarLabelStyle: { fontWeight: '700', fontSize: 12 },
                 headerShown: false,
             }}
         >
@@ -94,7 +112,7 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <BillProvider>
-                <NavigationContainer>
+                <NavigationContainer theme={navTheme}>
                     <Stack.Navigator>
                         <Stack.Screen
                             name="MainTabs"
@@ -115,5 +133,6 @@ export default function App() {
 
 // Componente simples para ícones de tabs
 const TabIcon: React.FC<{ name: string; color: string }> = ({ name, color }) => {
-    return <Text style={{ fontSize: 24, color: color, opacity: color === '#007AFF' ? 1 : 0.5 }}>{name}</Text>;
+    const active = color === colors.primary;
+    return <Text style={{ fontSize: 26, color, opacity: active ? 1 : 0.55 }}>{name}</Text>;
 };

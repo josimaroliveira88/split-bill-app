@@ -18,6 +18,7 @@ import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import { BillHistoryEntry, ItemConsumption } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
+import { colors } from '../theme/colors';
 
 export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const {
@@ -541,7 +542,7 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -549,13 +550,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
     marginBottom: 24,
+    letterSpacing: 0.3,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '800',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   inputRow: {
@@ -575,23 +577,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: '#1E1C33',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.04)',
   },
   listItemText: {
     fontSize: 16,
-    color: '#1C1C1E',
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   removeText: {
-    color: '#FF3B30',
+    color: colors.danger,
     fontSize: 14,
+    fontWeight: '700',
   },
   itemCard: {
     marginTop: 12,
     padding: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
+    backgroundColor: '#1E1C33',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(123, 108, 255, 0.25)',
   },
   itemHeader: {
     flexDirection: 'row',
@@ -600,19 +610,19 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   itemDetail: {
     marginBottom: 8,
   },
   itemDetailQuantity: {
     fontSize: 14,
-    color: '#5C5C60',
+    color: colors.textSecondary,
   },
   itemDetailPrice: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.textMuted,
     marginTop: 2,
   },
   distributeButton: {
@@ -620,8 +630,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   modeButtons: {
@@ -645,13 +655,13 @@ const styles = StyleSheet.create({
   },
   payerLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   payerHelper: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.textMuted,
   },
   noteInput: {
     minHeight: 80,
@@ -661,31 +671,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderWidth: 0,
     marginRight: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.accentSoft,
   },
   payerChipSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   payerChipText: {
     fontSize: 14,
-    color: '#1C1C1E',
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   payerChipTextSelected: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   summaryCard: {
-    backgroundColor: '#F0F6FF',
+    backgroundColor: '#1D1B2F',
   },
   liveResultsCard: {
     marginTop: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -695,99 +704,105 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#555',
+    color: colors.textSecondary,
   },
   summaryValue: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   summaryTotalRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopWidth: 0,
     paddingTop: 8,
     marginTop: 4,
   },
   summaryTotalLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
   },
   summaryTotalValue: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: '800',
+    color: colors.primary,
   },
   livePersonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    backgroundColor: '#1E1C33',
+    borderRadius: 14,
+    marginTop: 8,
   },
   personName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   liveSubText: {
     fontSize: 12,
-    color: '#5C5C60',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   liveAmount: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: '800',
+    color: colors.primary,
   },
   liveButton: {
     marginTop: 12,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: colors.card,
+    borderRadius: 24,
     padding: 24,
-    width: '80%',
-    maxHeight: '70%',
+    width: '90%',
+    maxHeight: '75%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '800',
     marginBottom: 16,
     textAlign: 'center',
+    color: colors.textPrimary,
   },
   personOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 8,
-    backgroundColor: '#F5F5F5',
+    borderRadius: 14,
+    backgroundColor: '#1E1C33',
     marginBottom: 8,
   },
   personSelected: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   personOptionText: {
     fontSize: 16,
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   personOptionTextSelected: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '800',
   },
   personInfo: {
     flex: 1,
   },
   personHint: {
     fontSize: 12,
-    color: '#E5E5EA',
+    color: colors.textMuted,
     marginTop: 4,
   },
   quantityInputContainer: {
@@ -797,18 +812,18 @@ const styles = StyleSheet.create({
   },
   quantityLabel: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: '#F5F7FF',
     marginRight: 6,
   },
   quantityInput: {
     width: 80,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.card,
+    borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    color: '#1C1C1E',
+    borderColor: colors.border,
+    color: colors.textPrimary,
   },
   modalButtons: {
     marginTop: 16,
@@ -819,7 +834,7 @@ const styles = StyleSheet.create({
   },
   modalHelper: {
     fontSize: 13,
-    color: '#5C5C60',
+    color: colors.textSecondary,
     marginBottom: 8,
     lineHeight: 18,
   },

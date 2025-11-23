@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
+import { colors } from '../../theme/colors';
 
 interface ButtonProps {
   title: string;
@@ -37,34 +38,41 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    borderRadius: 12,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 50,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 6,
   },
   primary: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.accent,
   },
   danger: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.danger,
   },
   disabled: {
     opacity: 0.5,
   },
   text: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   primaryText: {
     color: '#FFFFFF',
   },
   secondaryText: {
-    color: '#000000',
+    color: colors.textPrimary,
   },
   dangerText: {
     color: '#FFFFFF',

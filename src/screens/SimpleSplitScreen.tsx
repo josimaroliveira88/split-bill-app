@@ -10,6 +10,7 @@ import { CalculationService } from '../services/calculation.service';
 import { BillHistoryEntry, SimpleBill } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
 import { MainTabParamList } from '../types/navigation.types';
+import { colors } from '../theme/colors';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'SimpleSplit'>;
 
@@ -248,7 +249,7 @@ export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -256,18 +257,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textSecondary,
     marginBottom: 24,
   },
   resultCard: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     paddingVertical: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   resultLabel: {
     fontSize: 16,
@@ -275,21 +278,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resultValue: {
-    fontSize: 48,
-    fontWeight: 'bold',
+    fontSize: 52,
+    fontWeight: '800',
     color: '#FFFFFF',
     marginBottom: 16,
+    letterSpacing: 0.5,
   },
   resultDetails: {
     width: '100%',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.3)',
+    borderTopWidth: 0,
     paddingTop: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 18,
+    paddingHorizontal: 14,
   },
   resultDetailText: {
     fontSize: 14,
-    color: '#FFFFFF',
-    marginBottom: 4,
+    color: '#F5F7FF',
+    marginBottom: 6,
   },
   buttonContainer: {
     marginTop: 16,

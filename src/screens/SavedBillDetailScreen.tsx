@@ -10,6 +10,7 @@ import { StorageService } from '../services/storage.service';
 import { CalculationService } from '../services/calculation.service';
 import { useBill } from '../context/BillContext';
 import { RootStackParamList } from '../types/navigation.types';
+import { colors } from '../theme/colors';
 
 type SavedBillDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'SavedBillDetail'>;
 
@@ -122,7 +123,7 @@ export const SavedBillDetailScreen: React.FC<SavedBillDetailScreenProps> = ({ na
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -130,47 +131,48 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 14,
-    color: '#5C5C60',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   text: {
     fontSize: 14,
-    color: '#5C5C60',
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   totalText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: colors.primary,
     marginTop: 8,
   },
   personRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-    paddingTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     marginTop: 10,
+    backgroundColor: '#1E1C32',
+    borderRadius: 14,
   },
   personName: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   personTotal: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: colors.primary,
   },
   buttons: {
     marginTop: 16,
