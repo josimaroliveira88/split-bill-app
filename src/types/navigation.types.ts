@@ -10,7 +10,7 @@ export type DetailedStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
-  SimpleSplit: { entry?: BillHistoryEntry } | undefined;
+  SimpleSplit: { entry?: BillHistoryEntry; resetKey?: number } | undefined;
   DetailedStackNav: NavigatorScreenParams<DetailedStackParamList>;
 };
 
@@ -18,4 +18,3 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   SavedBillDetail: { entry: BillHistoryEntry };
 };
-

@@ -9,6 +9,12 @@ const STORAGE_KEYS = {
 };
 
 export class StorageService {
+  private static resolveTitle(title: string | undefined, createdAt: string): string {
+    if (title && title.trim()) return title.trim();
+    const date = new Date(createdAt);
+    return date.toLocaleString();
+  }
+
   /**
    * Salvar conta detalhada
    */
@@ -50,14 +56,22 @@ export class StorageService {
   /**
    * Salvar no histórico
    */
-  static async saveBillToHistory(bill: DetailedBill, results: any[]): Promise<void> {
+  static async saveBillToHistory(
+    bill: DetailedBill,
+    results: any[],
+    meta?: { title?: string; note?: string }
+  ): Promise<void> {
     try {
       const resultsHistory = Array.isArray(results) ? results : [];
+      const createdAt = new Date().toISOString();
+      const resolvedTitle = this.resolveTitle(meta?.title, createdAt);
       const entry: BillHistoryEntry = {
         id: Date.now().toString(),
-        name: 'Conta Detalhada',
+        name: resolvedTitle,
+        title: meta?.title?.trim() || undefined,
+        note: meta?.note?.trim() || undefined,
         type: 'detailed',
-        createdAt: new Date().toISOString(),
+        createdAt,
         bill,
         result: resultsHistory,
       };
@@ -99,12 +113,20 @@ export class StorageService {
     await AsyncStorage.setItem(STORAGE_KEYS.BILL_HISTORY, JSON.stringify(newHistory));
   }
 
-  static async saveSimpleBill(bill: SimpleBill, perPerson: number, name?: string): Promise<void> {
+  static async saveSimpleBill(
+    bill: SimpleBill,
+    perPerson: number,
+    options?: { title?: string; note?: string }
+  ): Promise<void> {
+    const createdAt = new Date().toISOString();
+    const resolvedTitle = this.resolveTitle(options?.title, createdAt);
     const entry: BillHistoryEntry = {
       id: Date.now().toString(),
-      name: name || 'Conta Simples',
+      name: resolvedTitle,
+      title: options?.title?.trim() || undefined,
+      note: options?.note?.trim() || undefined,
       type: 'simple',
-      createdAt: new Date().toISOString(),
+      createdAt,
       bill,
       result: perPerson,
     };

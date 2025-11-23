@@ -8,6 +8,7 @@ import { CalculationService } from '../services/calculation.service';
 interface BillContextData {
   bill: DetailedBill;
   currentEntryMeta: { id?: string; name?: string; createdAt?: string } | null;
+  updateBillInfo: (info: { title?: string; note?: string }) => void;
   addPerson: (name: string) => void;
   removePerson: (id: string) => void;
   addItem: (name: string, price: number, quantity: number, payerId?: string) => void;
@@ -33,6 +34,8 @@ const initialBill: DetailedBill = {
     serviceFeePercentage: 10,
     serviceFeeMode: 'proportional',
   },
+  title: '',
+  note: '',
 };
 
 export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -47,6 +50,14 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     loadBill();
   }, []);
+
+  const updateBillInfo = (info: { title?: string; note?: string }) => {
+    setBill(prev => ({
+      ...prev,
+      title: info.title !== undefined ? info.title : prev.title,
+      note: info.note !== undefined ? info.note : prev.note,
+    }));
+  };
 
   const addPerson = (name: string) => {
     const newPerson: Person = {
@@ -197,15 +208,34 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loadBill = async () => {
     const savedBill = await StorageService.loadDetailedBill();
     if (savedBill) {
-      setBill(savedBill);
+      setBill({
+        ...initialBill,
+        ...savedBill,
+        settings: { ...initialBill.settings, ...savedBill.settings },
+        title: savedBill.title || '',
+        note: savedBill.note || '',
+      });
     }
   };
 
   const loadBillFromHistory = (entry: BillHistoryEntry) => {
     if (entry.type !== 'detailed') return;
-    setBill(entry.bill as DetailedBill);
-    setCurrentEntryMeta({ id: entry.id, name: entry.name, createdAt: entry.createdAt });
-    StorageService.saveDetailedBill(entry.bill as DetailedBill);
+    const detailedBill = entry.bill as DetailedBill;
+    const resolvedTitle =
+      detailedBill.title ||
+      entry.title ||
+      entry.name ||
+      new Date(entry.createdAt).toLocaleString();
+    const mergedBill: DetailedBill = {
+      ...initialBill,
+      ...detailedBill,
+      settings: { ...initialBill.settings, ...detailedBill.settings },
+      title: resolvedTitle || '',
+      note: detailedBill.note || entry.note || '',
+    };
+    setBill(mergedBill);
+    setCurrentEntryMeta({ id: entry.id, name: resolvedTitle, createdAt: entry.createdAt });
+    StorageService.saveDetailedBill(mergedBill);
   };
 
   // Auto-save quando o bill mudar
@@ -220,6 +250,7 @@ export const BillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         bill,
         currentEntryMeta,
+        updateBillInfo,
         addPerson,
         removePerson,
         addItem,

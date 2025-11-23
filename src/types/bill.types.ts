@@ -43,12 +43,16 @@ export interface SimpleBill {
   totalAmount: number;
   numberOfPeople: number;
   serviceFeePercentage: number;
+  title?: string;
+  note?: string;
 }
 
 export interface DetailedBill {
   people: Person[];
   items: Item[];
   settings: BillSettings;
+  title?: string;
+  note?: string;
 }
 
 export type BillEntryType = 'simple' | 'detailed';
@@ -58,6 +62,8 @@ export interface BillHistoryEntry {
   name: string;
   type: BillEntryType;
   createdAt: string;
+  title?: string;
+  note?: string;
   bill: SimpleBill | DetailedBill;
   result: number | BillResult[]; // Simple: valor por pessoa; Detailed: resultados calculados
 }

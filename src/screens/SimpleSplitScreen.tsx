@@ -1,6 +1,6 @@
 // src/screens/SimpleSplitScreen.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { Button } from '../components/common/Button';
@@ -15,10 +15,14 @@ type Props = BottomTabScreenProps<MainTabParamList, 'SimpleSplit'>;
 
 export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
   const existingEntry: BillHistoryEntry | undefined = route?.params?.entry;
+  const [title, setTitle] = useState('');
+  const [note, setNote] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
   const [numberOfPeople, setNumberOfPeople] = useState('');
   const [serviceFee, setServiceFee] = useState('10');
   const [result, setResult] = useState<number | null>(null);
+  const initialTitleRef = useRef('');
+  const initialNoteRef = useRef('');
 
   useEffect(() => {
     if (existingEntry && existingEntry.type === 'simple') {
@@ -29,8 +33,43 @@ export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
       if (typeof existingEntry.result === 'number') {
         setResult(existingEntry.result);
       }
+      setTitle(bill.title || existingEntry.title || existingEntry.name || '');
+      setNote(bill.note || existingEntry.note || '');
+      initialTitleRef.current = bill.title || existingEntry.title || existingEntry.name || '';
+      initialNoteRef.current = bill.note || existingEntry.note || '';
+      return;
     }
+
+    // Nova conta simples: limpar tudo ao chegar
+    handleClear();
+    initialTitleRef.current = '';
+    initialNoteRef.current = '';
   }, [existingEntry]);
+
+  useEffect(() => {
+    if (!existingEntry || existingEntry.type !== 'simple') return;
+
+    return () => {
+      const trimmedTitle = title.trim();
+      const trimmedNote = note.trim();
+      const titleChanged = trimmedTitle !== initialTitleRef.current;
+      const noteChanged = trimmedNote !== initialNoteRef.current;
+
+      if (!titleChanged && !noteChanged) return;
+
+      const resolvedTitle =
+        trimmedTitle || new Date(existingEntry.createdAt).toLocaleString();
+
+      const updatedEntry: BillHistoryEntry = {
+        ...existingEntry,
+        name: resolvedTitle,
+        title: trimmedTitle || undefined,
+        note: trimmedNote || undefined,
+      };
+
+      StorageService.updateHistoryEntry(updatedEntry);
+    };
+  }, [existingEntry, title, note]);
 
   const handleCalculate = () => {
     const total = parseFloat(totalAmount);
@@ -64,26 +103,46 @@ export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
       totalAmount: total,
       numberOfPeople: people,
       serviceFeePercentage: fee,
+      title: title.trim() || undefined,
+      note: note.trim() || undefined,
     };
 
     if (existingEntry && existingEntry.type === 'simple') {
+      const resolvedTitle = title.trim()
+        ? title.trim()
+        : new Date(existingEntry.createdAt).toLocaleString();
       const updatedEntry: BillHistoryEntry = {
         ...existingEntry,
+        name: resolvedTitle,
+        title: title.trim() || undefined,
+        note: note.trim() || undefined,
         bill: billToSave,
         result: perPerson,
       };
       StorageService.updateHistoryEntry(updatedEntry);
     } else {
-      StorageService.saveSimpleBill(billToSave, perPerson);
+      StorageService.saveSimpleBill(billToSave, perPerson, {
+        title: title.trim(),
+        note: note.trim(),
+      });
     }
   };
 
   const handleClear = () => {
+    setTitle('');
+    setNote('');
     setTotalAmount('');
     setNumberOfPeople('');
     setServiceFee('10');
     setResult(null);
   };
+
+  useEffect(() => {
+    if (existingEntry || !route?.params?.resetKey) return;
+    handleClear();
+    initialTitleRef.current = '';
+    initialNoteRef.current = '';
+  }, [existingEntry, route?.params?.resetKey]);
 
   return (
     <ScrollView style={styles.container}>
@@ -92,6 +151,24 @@ export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
         <Text style={styles.subtitle}>
           Divida a conta igualmente entre todos
         </Text>
+
+        <Card>
+          <Input
+            label="Título da conta (opcional)"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Ex: Restaurante Central"
+          />
+          <Input
+            label="Observações"
+            value={note}
+            onChangeText={setNote}
+            placeholder="Comentários sobre o atendimento, etc."
+            multiline
+            numberOfLines={3}
+            style={styles.noteInput}
+          />
+        </Card>
 
         <Card>
           <Input
@@ -222,5 +299,9 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     marginBottom: 12,
+  },
+  noteInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
 });

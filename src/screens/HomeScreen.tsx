@@ -72,6 +72,12 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
+  const resolveTitle = (entry: BillHistoryEntry) => {
+    if (entry.title && entry.title.trim()) return entry.title;
+    if (entry.name && entry.name.trim()) return entry.name;
+    return formatDate(entry.createdAt);
+  };
+
   const renderSummary = (entry: BillHistoryEntry) => {
     if (entry.type === 'simple') {
       const perPerson = typeof entry.result === 'number' ? entry.result : 0;
@@ -115,7 +121,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <Card key={entry.id} style={styles.entryCard}>
             <View style={styles.entryHeader}>
               <View>
-                <Text style={styles.entryTitle}>{entry.name}</Text>
+                <Text style={styles.entryTitle}>{resolveTitle(entry)}</Text>
                 <Text style={styles.entryDate}>{formatDate(entry.createdAt)}</Text>
               </View>
               <View
@@ -128,6 +134,9 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             <Text style={styles.entrySummary}>{renderSummary(entry)}</Text>
+            {entry.note ? (
+              <Text style={styles.entryNote}>Obs: {entry.note}</Text>
+            ) : null}
 
             <View style={styles.entryActions}>
               <TouchableOpacity onPress={() => handleConsult(entry)}>
@@ -209,6 +218,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#5C5C60',
     marginBottom: 10,
+  },
+  entryNote: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginBottom: 8,
   },
   badge: {
     paddingHorizontal: 10,

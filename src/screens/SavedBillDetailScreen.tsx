@@ -17,6 +17,17 @@ export const SavedBillDetailScreen: React.FC<SavedBillDetailScreenProps> = ({ na
   const { entry } = route.params;
   const { loadBillFromHistory } = useBill();
 
+  const formatDate = (iso: string) => {
+    const date = new Date(iso);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
+  const resolveTitle = () => {
+    if (entry.title && entry.title.trim()) return entry.title;
+    if (entry.name && entry.name.trim()) return entry.name;
+    return formatDate(entry.createdAt);
+  };
+
   const detailedResults: BillResult[] | null = useMemo(() => {
     if (entry.type === 'detailed') {
       if (Array.isArray(entry.result)) return entry.result as BillResult[];
@@ -50,21 +61,24 @@ export const SavedBillDetailScreen: React.FC<SavedBillDetailScreenProps> = ({ na
   };
 
   const formatCurrency = (value: number) => value.toFixed(2).replace('.', ',');
-  const formatDate = (iso: string) => {
-    const date = new Date(iso);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-  };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>{entry.name}</Text>
+        <Text style={styles.title}>{resolveTitle()}</Text>
         <Text style={styles.subtitle}>{formatDate(entry.createdAt)}</Text>
 
         <Card>
           <Text style={styles.sectionTitle}>Tipo</Text>
           <Text style={styles.text}>{entry.type === 'detailed' ? 'Divisão Detalhada' : 'Divisão Simples'}</Text>
         </Card>
+
+        {entry.note ? (
+          <Card>
+            <Text style={styles.sectionTitle}>Observações</Text>
+            <Text style={styles.text}>{entry.note}</Text>
+          </Card>
+        ) : null}
 
         {entry.type === 'simple' && (
           <Card>

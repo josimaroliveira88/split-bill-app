@@ -27,10 +27,17 @@ export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     if (saveKeyRef.current === payloadKey) return;
     saveKeyRef.current = payloadKey;
 
+    const createdAt = currentEntryMeta?.createdAt || new Date().toISOString();
+    const resolvedTitle =
+      (bill.title && bill.title.trim()) || new Date(createdAt).toLocaleString();
+    const resolvedNote = bill.note && bill.note.trim() ? bill.note.trim() : undefined;
+
     const entry: BillHistoryEntry = {
       id: currentEntryMeta?.id || Date.now().toString(),
-      name: currentEntryMeta?.name || 'Conta Detalhada',
-      createdAt: currentEntryMeta?.createdAt || new Date().toISOString(),
+      name: resolvedTitle,
+      title: bill.title?.trim() || undefined,
+      note: resolvedNote,
+      createdAt,
       type: 'detailed',
       bill,
       result: results,
@@ -60,6 +67,8 @@ export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Resultado da Divisão</Text>
+        {bill.title ? <Text style={styles.subtitle}>{bill.title}</Text> : null}
+        {bill.note ? <Text style={styles.note}>{bill.note}</Text> : null}
 
         <Card style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Geral</Text>
@@ -153,6 +162,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1C1C1E',
     marginBottom: 24,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#5C5C60',
+    marginTop: -8,
+    marginBottom: 8,
+  },
+  note: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: -4,
+    marginBottom: 12,
   },
   summaryCard: {
     backgroundColor: '#007AFF',

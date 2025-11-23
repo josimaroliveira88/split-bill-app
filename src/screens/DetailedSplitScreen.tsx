@@ -11,15 +11,19 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useBill } from '../context/BillContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
-import { ItemConsumption } from '../types/bill.types';
+import { BillHistoryEntry, ItemConsumption } from '../types/bill.types';
+import { StorageService } from '../services/storage.service';
 
 export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const {
     bill,
+    currentEntryMeta,
+    updateBillInfo,
     addPerson,
     removePerson,
     addItem,
@@ -201,10 +205,65 @@ export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation 
     setPeopleQuantities({});
   };
 
+  const persistTitleAndNote = React.useCallback(async () => {
+    if (!currentEntryMeta?.id) return;
+    const history = await StorageService.loadBillHistory();
+    const entry = history.find(e => e.id === currentEntryMeta.id);
+    if (!entry) return;
+
+    const resolvedTitle =
+      (bill.title && bill.title.trim()) ||
+      entry.title ||
+      entry.name ||
+      new Date(entry.createdAt).toLocaleString();
+    const resolvedNote = bill.note && bill.note.trim() ? bill.note.trim() : undefined;
+
+    const updated: BillHistoryEntry = {
+      ...entry,
+      name: resolvedTitle,
+      title: bill.title?.trim() || undefined,
+      note: resolvedNote,
+      bill: {
+        ...(entry.bill as any),
+        ...bill,
+        title: bill.title?.trim() || undefined,
+        note: resolvedNote,
+      },
+    };
+
+    await StorageService.updateHistoryEntry(updated);
+  }, [bill, currentEntryMeta]);
+
+  useFocusEffect(
+    useMemo(
+      () => () => {
+        persistTitleAndNote();
+      },
+      [persistTitleAndNote]
+    )
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Divisão Detalhada</Text>
+        <Card>
+          <Input
+            label="Título da conta (ex: nome do estabelecimento)"
+            value={bill.title}
+            onChangeText={text => updateBillInfo({ title: text })}
+            placeholder="Ex: Churrascaria Boi na Brasa"
+          />
+          <Input
+            label="Observações"
+            value={bill.note}
+            onChangeText={text => updateBillInfo({ note: text })}
+            placeholder="Ex: Atendimento excelente, pedir mesa ao fundo."
+            multiline
+            numberOfLines={3}
+            style={styles.noteInput}
+          />
+        </Card>
 
         {/* Pessoas */}
         <Card>
@@ -593,6 +652,10 @@ const styles = StyleSheet.create({
   payerHelper: {
     fontSize: 13,
     color: '#8E8E93',
+  },
+  noteInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
   payerChip: {
     paddingHorizontal: 12,

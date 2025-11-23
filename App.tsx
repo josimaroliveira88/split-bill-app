@@ -13,6 +13,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SavedBillDetailScreen } from './src/screens/SavedBillDetailScreen';
 import { MainTabParamList, RootStackParamList, DetailedStackParamList } from './src/types/navigation.types';
+import { useBill } from './src/context/BillContext';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -29,6 +30,8 @@ function DetailedStack() {
 }
 
 function MainTabs() {
+    const { clearBill, setCurrentEntryMeta } = useBill();
+
     return (
         <Tab.Navigator
             initialRouteName="Home"
@@ -59,7 +62,14 @@ function MainTabs() {
                     title: 'Divisão Simples',
                     tabBarLabel: 'Simples',
                     tabBarIcon: ({ color }) => <TabIcon name="💰" color={color} />,
+                    unmountOnBlur: true,
                 }}
+                listeners={({ navigation }) => ({
+                    tabPress: () => {
+                        setCurrentEntryMeta(null);
+                        navigation.navigate('SimpleSplit', { entry: undefined, resetKey: Date.now() });
+                    },
+                })}
             />
             <Tab.Screen
                 name="DetailedStackNav"
@@ -69,7 +79,14 @@ function MainTabs() {
                     tabBarLabel: 'Detalhada',
                     tabBarIcon: ({ color }) => <TabIcon name="📝" color={color} />,
                     headerShown: false,
+                    unmountOnBlur: true,
                 }}
+                listeners={({ navigation }) => ({
+                    tabPress: () => {
+                        clearBill();
+                        navigation.navigate('DetailedStackNav', { screen: 'DetailedSplit' });
+                    },
+                })}
             />
         </Tab.Navigator>
     );
