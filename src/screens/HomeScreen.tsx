@@ -4,12 +4,13 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { BillHistoryEntry } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
 import { useBill } from '../context/BillContext';
-import { MainTabParamList } from '../types/navigation.types';
+import { MainTabParamList, RootStackParamList } from '../types/navigation.types';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
@@ -43,7 +44,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleConsult = (entry: BillHistoryEntry) => {
-    const rootNav = navigation.getParent ? navigation.getParent() : navigation;
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     rootNav?.navigate('SavedBillDetail', { entry });
   };
 

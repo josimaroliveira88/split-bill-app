@@ -62,7 +62,6 @@ function MainTabs() {
                     title: 'Divisão Simples',
                     tabBarLabel: 'Simples',
                     tabBarIcon: ({ color }) => <TabIcon name="💰" color={color} />,
-                    unmountOnBlur: true,
                 }}
                 listeners={({ navigation }) => ({
                     tabPress: () => {
@@ -79,7 +78,6 @@ function MainTabs() {
                     tabBarLabel: 'Detalhada',
                     tabBarIcon: ({ color }) => <TabIcon name="📝" color={color} />,
                     headerShown: false,
-                    unmountOnBlur: true,
                 }}
                 listeners={({ navigation }) => ({
                     tabPress: () => {
