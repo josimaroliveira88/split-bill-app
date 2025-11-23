@@ -12,7 +12,13 @@ import { ResultScreen } from './src/screens/ResultScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SavedBillDetailScreen } from './src/screens/SavedBillDetailScreen';
-import { MainTabParamList, RootStackParamList, DetailedStackParamList } from './src/types/navigation.types';
+import {
+    DetailedStackParamList,
+    HomeStackParamList,
+    MainTabParamList,
+    RootStackParamList,
+    SimpleStackParamList,
+} from './src/types/navigation.types';
 import { useBill } from './src/context/BillContext';
 import { colors } from './src/theme/colors';
 
@@ -30,15 +36,33 @@ const navTheme = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const DetailedStackNav = createNativeStackNavigator<DetailedStackParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const SimpleStack = createNativeStackNavigator<SimpleStackParamList>();
+const DetailedStack = createNativeStackNavigator<DetailedStackParamList>();
+
+function HomeStackScreens() {
+    return (
+        <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+            <HomeStack.Screen name="Home" component={HomeScreen} />
+        </HomeStack.Navigator>
+    );
+}
+
+function SimpleStackScreens() {
+    return (
+        <SimpleStack.Navigator screenOptions={{ headerShown: false }}>
+            <SimpleStack.Screen name="SimpleSplit" component={SimpleSplitScreen} />
+        </SimpleStack.Navigator>
+    );
+}
 
 // Stack para a navegação de Divisão Detalhada
-function DetailedStack() {
+function DetailedStackScreens() {
     return (
-        <DetailedStackNav.Navigator>
-            <DetailedStackNav.Screen name="DetailedSplit" component={DetailedSplitScreen} options={{ headerShown: false }} />
-            <DetailedStackNav.Screen name="Result" component={ResultScreen} options={{ title: 'Resultado' }} />
-        </DetailedStackNav.Navigator>
+        <DetailedStack.Navigator>
+            <DetailedStack.Screen name="DetailedSplit" component={DetailedSplitScreen} options={{ headerShown: false }} />
+            <DetailedStack.Screen name="Result" component={ResultScreen} options={{ title: 'Resultado' }} />
+        </DetailedStack.Navigator>
     );
 }
 
@@ -47,7 +71,8 @@ function MainTabs() {
 
     return (
         <Tab.Navigator
-            initialRouteName="Home"
+            initialRouteName="HomeTab"
+            backBehavior="initialRoute"
             screenOptions={{
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors.textMuted,
@@ -64,8 +89,8 @@ function MainTabs() {
             }}
         >
             <Tab.Screen
-                name="Home"
-                component={HomeScreen}
+                name="HomeTab"
+                component={HomeStackScreens}
                 options={{
                     title: 'Início',
                     tabBarLabel: 'Início',
@@ -73,8 +98,8 @@ function MainTabs() {
                 }}
             />
             <Tab.Screen
-                name="SimpleSplit"
-                component={SimpleSplitScreen}
+                name="SimpleTab"
+                component={SimpleStackScreens}
                 options={{
                     title: 'Divisão Simples',
                     tabBarLabel: 'Simples',
@@ -83,13 +108,16 @@ function MainTabs() {
                 listeners={({ navigation }) => ({
                     tabPress: () => {
                         setCurrentEntryMeta(null);
-                        navigation.navigate('SimpleSplit', { entry: undefined, resetKey: Date.now() });
+                        navigation.navigate('SimpleTab', {
+                            screen: 'SimpleSplit',
+                            params: { entry: undefined, resetKey: Date.now() },
+                        });
                     },
                 })}
             />
             <Tab.Screen
-                name="DetailedStackNav"
-                component={DetailedStack}
+                name="DetailedTab"
+                component={DetailedStackScreens}
                 options={{
                     title: 'Divisão Detalhada',
                     tabBarLabel: 'Detalhada',
@@ -99,7 +127,7 @@ function MainTabs() {
                 listeners={({ navigation }) => ({
                     tabPress: () => {
                         clearBill();
-                        navigation.navigate('DetailedStackNav', { screen: 'DetailedSplit' });
+                        navigation.navigate('DetailedTab', { screen: 'DetailedSplit' });
                     },
                 })}
             />

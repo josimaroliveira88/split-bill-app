@@ -2,17 +2,17 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import { CalculationService } from '../services/calculation.service';
 import { BillHistoryEntry, SimpleBill } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
-import { MainTabParamList } from '../types/navigation.types';
+import { SimpleStackParamList } from '../types/navigation.types';
 import { colors } from '../theme/colors';
 
-type Props = BottomTabScreenProps<MainTabParamList, 'SimpleSplit'>;
+type Props = NativeStackScreenProps<SimpleStackParamList, 'SimpleSplit'>;
 
 export const SimpleSplitScreen: React.FC<Props> = ({ route }) => {
   const existingEntry: BillHistoryEntry | undefined = route?.params?.entry;

@@ -8,14 +8,18 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useBill } from '../context/BillContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { BillHistoryEntry, BillResult } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
+import { DetailedStackParamList } from '../types/navigation.types';
 import { colors } from '../theme/colors';
 
-export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+type Props = NativeStackScreenProps<DetailedStackParamList, 'Result'>;
+
+export const ResultScreen: React.FC<Props> = ({ navigation }) => {
   const { bill, calculateResults, clearBill, currentEntryMeta, setCurrentEntryMeta } = useBill();
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const results = calculateResults();
@@ -57,7 +61,7 @@ export const ResultScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleNewBill = () => {
     clearBill();
-    navigation.navigate('DetailedSplit');
+    navigation.popToTop();
   };
 
   const toggleDetails = (personId: string) => {

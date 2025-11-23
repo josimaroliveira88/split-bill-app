@@ -2,18 +2,25 @@
 
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { CompositeScreenProps, useFocusEffect } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { BillHistoryEntry } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
 import { useBill } from '../context/BillContext';
-import { MainTabParamList, RootStackParamList } from '../types/navigation.types';
+import {
+  HomeStackParamList,
+  MainTabParamList,
+  RootStackParamList,
+} from '../types/navigation.types';
 import { colors } from '../theme/colors';
 
-type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
+type Props = CompositeScreenProps<
+  NativeStackScreenProps<HomeStackParamList, 'Home'>,
+  BottomTabScreenProps<MainTabParamList, 'HomeTab'>
+>;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [history, setHistory] = useState<BillHistoryEntry[]>([]);
@@ -45,28 +52,31 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleConsult = (entry: BillHistoryEntry) => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    const rootNav = navigation
+      .getParent()
+      ?.getParent()
+      ?.getParent<NativeStackNavigationProp<RootStackParamList>>();
     rootNav?.navigate('SavedBillDetail', { entry });
   };
 
   const handleEdit = (entry: BillHistoryEntry) => {
     if (entry.type === 'simple') {
-      navigation.navigate('SimpleSplit', { entry });
+      navigation.navigate('SimpleTab', { screen: 'SimpleSplit', params: { entry } });
       return;
     }
 
     loadBillFromHistory(entry);
-    navigation.navigate('DetailedStackNav', { screen: 'DetailedSplit' });
+    navigation.navigate('DetailedTab', { screen: 'DetailedSplit' });
   };
 
   const handleAddSimple = () => {
     setCurrentEntryMeta(null);
-    navigation.navigate('SimpleSplit');
+    navigation.navigate('SimpleTab', { screen: 'SimpleSplit' });
   };
 
   const handleAddDetailed = () => {
     clearBill();
-    navigation.navigate('DetailedStackNav', { screen: 'DetailedSplit' });
+    navigation.navigate('DetailedTab', { screen: 'DetailedSplit' });
   };
 
   const formatDate = (iso: string) => {

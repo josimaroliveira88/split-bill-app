@@ -53,12 +53,15 @@ export const SavedBillDetailScreen: React.FC<SavedBillDetailScreenProps> = ({ na
 
   const handleEdit = () => {
     if (entry.type === 'simple') {
-      navigation.navigate('MainTabs', { screen: 'SimpleSplit', params: { entry } });
+      navigation.navigate('MainTabs', {
+        screen: 'SimpleTab',
+        params: { screen: 'SimpleSplit', params: { entry } },
+      });
       return;
     }
 
     loadBillFromHistory(entry);
-    navigation.navigate('MainTabs', { screen: 'DetailedStackNav', params: { screen: 'DetailedSplit' } });
+    navigation.navigate('MainTabs', { screen: 'DetailedTab', params: { screen: 'DetailedSplit' } });
   };
 
   const formatCurrency = (value: number) => value.toFixed(2).replace('.', ',');

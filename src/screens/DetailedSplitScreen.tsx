@@ -12,15 +12,19 @@ import {
   TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useBill } from '../context/BillContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import { BillHistoryEntry, ItemConsumption } from '../types/bill.types';
 import { StorageService } from '../services/storage.service';
+import { DetailedStackParamList } from '../types/navigation.types';
 import { colors } from '../theme/colors';
 
-export const DetailedSplitScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+type Props = NativeStackScreenProps<DetailedStackParamList, 'DetailedSplit'>;
+
+export const DetailedSplitScreen: React.FC<Props> = ({ navigation }) => {
   const {
     bill,
     currentEntryMeta,
