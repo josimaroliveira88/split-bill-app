@@ -53,9 +53,8 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleConsult = (entry: BillHistoryEntry) => {
     const rootNav = navigation
-      .getParent()
-      ?.getParent()
-      ?.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      .getParent() // Tab navigator
+      ?.getParent<NativeStackNavigationProp<RootStackParamList>>(); // Root stack navigator
     rootNav?.navigate('SavedBillDetail', { entry });
   };
 
