@@ -12,6 +12,7 @@ import { ResultScreen } from './src/screens/ResultScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SavedBillDetailScreen } from './src/screens/SavedBillDetailScreen';
+import { BackupScreen } from './src/screens/BackupScreen';
 import {
     DetailedStackParamList,
     HomeStackParamList,
@@ -150,6 +151,11 @@ export default function App() {
                             name="SavedBillDetail"
                             component={SavedBillDetailScreen}
                             options={{ title: 'Conta Salva' }}
+                        />
+                        <Stack.Screen
+                            name="Backup"
+                            component={BackupScreen}
+                            options={{ title: 'Backup do Histórico' }}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>

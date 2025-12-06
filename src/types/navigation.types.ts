@@ -25,4 +25,5 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   SavedBillDetail: { entry: BillHistoryEntry };
+  Backup: undefined;
 };

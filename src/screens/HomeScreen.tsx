@@ -78,6 +78,13 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('DetailedTab', { screen: 'DetailedSplit' });
   };
 
+  const handleBackupNavigation = () => {
+    const rootNav = navigation
+      .getParent()
+      ?.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    rootNav?.navigate('Backup');
+  };
+
   const formatDate = (iso: string) => {
     const date = new Date(iso);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
@@ -120,6 +127,14 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.actionButton}
             />
           </View>
+        </Card>
+
+        <Card style={styles.backupCard}>
+          <Text style={styles.sectionTitle}>Backup do histórico</Text>
+          <Text style={styles.backupText}>
+            Exporte suas contas antes de reinstalar e importe depois para não perder o histórico.
+          </Text>
+          <Button title="Backup / Restaurar" onPress={handleBackupNavigation} />
         </Card>
 
         {history.length === 0 && (
@@ -194,6 +209,14 @@ const styles = StyleSheet.create({
   },
   actionsCard: {
     marginBottom: 12,
+  },
+  backupCard: {
+    marginBottom: 12,
+  },
+  backupText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 10,
   },
   actionsRow: {
     flexDirection: 'row',
